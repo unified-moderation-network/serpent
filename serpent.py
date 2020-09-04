@@ -45,7 +45,7 @@ def main(timezone):
     scheduler.add_jobstore("sqlalchemy", url="sqlite:///serpent.sqlite")
     try:
         scheduler.start()
-        await recv_loop(ctx, scheduler)
+        recv_loop(ctx, scheduler)
     finally:
         scheduler.shutdown()
 
