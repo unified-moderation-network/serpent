@@ -2,7 +2,6 @@
 A scheduler of sorts
 """
 
-import contextlib
 import logging
 import os
 import sys
@@ -12,11 +11,6 @@ from typing import Optional
 import msgpack
 import pytz
 import zmq
-from apscheduler.jobstores.base import JobLookupError
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.date import DateTrigger
-from apscheduler.triggers.interval import IntervalTrigger
 
 MULTICAST_SUBSCRIBE_ADDR = "tcp://127.0.0.1:5555"
 PULL_REMOTE_ADDR = "tcp://127.0.0.1:5556"
@@ -26,14 +20,7 @@ REMOVE_SCHEDULED_PAYLOAD = "serpent.stop"
 
 CRON = "cron"
 INTERVAL = "interval"
-DATE = "date"
-
-TRIGGER_DICT = {
-    CRON: CronTrigger,
-    INTERVAL: IntervalTrigger,
-    DATE: DateTrigger,
-}
-
+ONCE = "once"
 
 log = logging.getLogger("serpent")
 ctx: Optional[zmq.Context] = None
@@ -41,13 +28,7 @@ push_socket: Optional[zmq.Socket] = None
 
 
 def main(timezone):
-    scheduler = BackgroundScheduler(timezone=timezone)
-    scheduler.add_jobstore("sqlalchemy", url="sqlite:///serpent.sqlite")
-    try:
-        scheduler.start()
-        recv_loop(ctx, scheduler)
-    finally:
-        scheduler.shutdown()
+    ...
 
 
 def send_payload(payload):
@@ -65,21 +46,12 @@ def recv_loop(ctx, scheduler):
         topic, maybe_payload = msgpack.unpackb(raw_payload)
         if topic == CREATE_SCHEDULED_PAYLOAD:
             try:
-                (uuid, trigger_type, trigger_kwargs, payload) = maybe_payload
-                trigger = TRIGGER_DICT[trigger_type](**trigger_kwargs)
-                re_serial_payload = msgpack.packb(payload)
-                scheduler.add_job(
-                    send_payload,
-                    trigger=trigger,
-                    args=(re_serial_payload,),
-                    replace_existing=True,
-                )
+                ...
             except Exception as exc:
                 log.exception("Bad payload %s ", raw_payload, exc_info=exc)
 
         elif topic == REMOVE_SCHEDULED_PAYLOAD:
-            with contextlib.suppress(JobLookupError):
-                scheduler.remove_job(maybe_payload)
+            ...
 
 
 if __name__ == "__main__":
