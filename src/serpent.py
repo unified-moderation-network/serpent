@@ -2,15 +2,18 @@
 A scheduler of sorts
 """
 
+import asyncio
 import logging
 import os
 import sys
 from logging.handlers import RotatingFileHandler
-from typing import Optional
 
 import msgpack
 import pytz
 import zmq
+import zmq.asyncio
+
+from .tasks import Scheduler
 
 MULTICAST_SUBSCRIBE_ADDR = "tcp://127.0.0.1:5555"
 PULL_REMOTE_ADDR = "tcp://127.0.0.1:5556"
@@ -23,26 +26,23 @@ INTERVAL = "interval"
 ONCE = "once"
 
 log = logging.getLogger("serpent")
-ctx: Optional[zmq.Context] = None
-push_socket: Optional[zmq.Socket] = None
 
 
-def main(timezone):
-    ...
+async def main(timezone):
+    ctx = zmq.asyncio.Context()
+    push_socket = ctx.socket(zmq.PUSH)
+    push_socket.connect(PULL_REMOTE_ADDR)
+    async with Scheduler(timezone, push_socket) as sched:
+        await recv_loop(ctx, sched)
 
 
-def send_payload(payload):
-    if push_socket is not None:
-        push_socket.send(payload)
-
-
-def recv_loop(ctx, scheduler):
+async def recv_loop(ctx: zmq.asyncio.Context, scheduler: Scheduler):
     recv_sock = ctx.socket(zmq.SUB)
     recv_sock.setsockopt(zmq.SUBSCRIBE, b"")  #: TODO
     recv_sock.connect(MULTICAST_SUBSCRIBE_ADDR)
 
     while True:
-        raw_payload = recv_sock.recv()
+        raw_payload = await recv_sock.recv()
         topic, maybe_payload = msgpack.unpackb(raw_payload)
         if topic == CREATE_SCHEDULED_PAYLOAD:
             try:
@@ -80,7 +80,11 @@ if __name__ == "__main__":
     else:
         log.setLevel(logging.WARNING)
 
-    ctx = zmq.Context()
-    push_socket = ctx.socket(zmq.PUSH)
-    push_socket.connect(PULL_REMOTE_ADDR)
-    main(TIMEZONE)
+    try:
+        import uvloop
+    except ImportError:
+        uvloop = None
+    else:
+        uvloop.install()
+
+    asyncio.run(main(TIMEZONE))

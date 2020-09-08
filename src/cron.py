@@ -510,3 +510,16 @@ class CronEntry:
             MonthsField.parse(p3),
             WeekdaysField.parse(p4),
         )
+
+    def to_store(self):
+        return ("cron", 1, str(self))
+
+    @classmethod
+    def from_store(cls, typ, ver, data):
+        if typ != "cron":
+            raise TypeError("Got a different schedule type than expected cron: %s", typ)
+        if (
+            ver != 1
+        ):  # unlikely to change in a breaking way, but let's plan for it as a possibility.
+            raise ValueError("Can't parse newer schedule version.")
+        return cls.parse(data)
