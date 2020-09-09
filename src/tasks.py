@@ -37,9 +37,8 @@ class ScheduledPayloadTask:
 
 
 class Scheduler:
-    def __init__(self, timezone: tzinfo, socket: zmq.asyncio.Socket):
+    def __init__(self, socket: zmq.asyncio.Socket):
         asyncio.get_running_loop()  # we don't want this being created outside a running event loop.
-        self.timezone: tzinfo = timezone
         self.socket: zmq.asyncio.Socket = socket
         self._tasks: Dict[bytes, ScheduledPayloadTask] = {}
         self._iter_lock = asyncio.Lock()
@@ -54,6 +53,14 @@ class Scheduler:
 
     async def __aexit__(self, *args):
         self._loop_task.cancel()
+
+    async def add_task(self, task: ScheduledPayloadTask):
+        async with self._iter_lock:
+            self._tasks[task.uuid] = task
+
+    async def remove_task(self, uuid: bytes):
+        async with self._iter_lock:
+            self._tasks.pop(uuid, None)
 
     async def safe_send(self, payload):
         try:
