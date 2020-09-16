@@ -17,8 +17,8 @@ import pytz
 import zmq
 import zmq.asyncio
 
-from .cron import CronEntry
-from .tasks import ScheduledPayloadTask, Scheduler
+from cron import CronEntry
+from tasks import ScheduledPayloadTask, Scheduler
 
 MULTICAST_SUBSCRIBE_ADDR = "tcp://127.0.0.1:5555"
 PULL_REMOTE_ADDR = "tcp://127.0.0.1:5556"
