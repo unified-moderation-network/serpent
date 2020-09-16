@@ -40,7 +40,7 @@ async def main(timezone: tzinfo):
     with closing(prep_database()) as connection:
         async with Scheduler(push_socket) as sched:
             for task in get_all_tasks(connection):
-                sched.add_task(task)
+                await sched.add_task(task)
             await recv_loop(ctx, sched, connection, timezone)
 
 
