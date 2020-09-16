@@ -133,11 +133,11 @@ async def recv_loop(
                 (uuid, (s_type, s_parsable), tzi, payload) = maybe_payload
                 tzi = pytz.timezone(tzi) if tzi is not None else tz
                 task = recv_to_task(s_type, s_parsable, tzi, uuid, payload)
-                scheduler.add_task(task)
+                await scheduler.add_task(task)
                 store_task(connection, task)
             elif topic == REMOVE_SCHEDULED_PAYLOAD:
                 s_type, uuid = maybe_payload
-                scheduler.remove_task(uuid)
+                await scheduler.remove_task(uuid)
                 unstore_task(connection, s_type, uuid)
         except Exception as exc:
             log.exception("Bad payload %s ", raw_payload, exc_info=exc)
