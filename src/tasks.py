@@ -9,7 +9,7 @@ import pytz
 import zmq
 import zmq.asyncio
 
-from .cron import CronEntry
+from cron import CronEntry
 
 log = logging.getLogger("serpent")
 

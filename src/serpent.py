@@ -59,6 +59,7 @@ def prep_database() -> apsw.Connection:
             )
             """
         )
+    return con
 
 
 def get_all_tasks(con: apsw.Connection) -> Generator[ScheduledPayloadTask, None, None]:
