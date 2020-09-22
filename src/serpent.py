@@ -122,7 +122,8 @@ async def recv_loop(
     tz: tzinfo,
 ):
     recv_sock = ctx.socket(zmq.SUB)
-    recv_sock.setsockopt(zmq.SUBSCRIBE, b"")  #: TODO
+    for raw_topic in (b"\x92\xadserpent.start", b"\x92\xacserpent.stop"):
+        recv_sock.setsockopt(zmq.SUBSCRIBE, raw_topic)
     recv_sock.connect(MULTICAST_SUBSCRIBE_ADDR)
 
     while True:

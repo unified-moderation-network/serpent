@@ -72,11 +72,11 @@ class Scheduler:
 
     async def scheduling_loop(self):
 
-        now = datetime.utcnow().replace(second=0, microsecond=0, tz=pytz.utc)
+        now = datetime.utcnow().replace(second=0, microsecond=0, tzinfo=pytz.utc)
         last = now - timedelta(minutes=1)
         while True:
             await asyncio.sleep(15)
-            now = datetime.utcnow().replace(second=0, microsecond=0, tz=pytz.utc)
+            now = datetime.utcnow().replace(second=0, microsecond=0, tzinfo=pytz.utc)
             if now <= last:
                 continue
 
